@@ -9,13 +9,21 @@ import {
   type JLPTLevel,
   type Kanji,
 } from "../data/kanjiData";
-import { n1Words, type N1Word } from "../data/n1Words";
+import { levelThemes } from "../data/levelThemes";
+import {
+  wordLevels,
+  wordsByLevel,
+  type LevelWord,
+  type WordLevel,
+} from "../data/levelWords";
 
 type Mode =
   | "meaning"
   | "onyomi"
   | "kunyomi"
   | "word"
+  | "word-reading"
+  | "word-meaning"
   | "n1-reading"
   | "n1-meaning";
 
@@ -24,15 +32,15 @@ const modes: { value: Mode; label: string }[] = [
   { value: "onyomi", label: "Onyomi" },
   { value: "kunyomi", label: "Kunyomi" },
   { value: "word", label: "Vocabulary" },
-  { value: "n1-reading", label: "N1 Readings" },
-  { value: "n1-meaning", label: "N1 Meanings" },
+  { value: "word-reading", label: "Word Readings" },
+  { value: "word-meaning", label: "Word Meanings" },
 ];
 
 function normalize(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function meaningMatches(answer: string, word: N1Word) {
+function meaningMatches(answer: string, word: LevelWord) {
   const value = normalize(answer);
 
   if (!value || word.meanings.length === 0) {
@@ -95,39 +103,59 @@ function expectedKanjiAnswer(kanji: Kanji, mode: Mode) {
 
 function questionText(mode: Mode) {
   if (mode === "meaning") {
-    return "Type the English meaning.";
+    return "Type the meaning.";
   }
 
   if (mode === "word") {
     return "Type one example word, reading, or meaning.";
   }
 
-  if (mode === "n1-reading") {
+  if (mode === "word-reading" || mode === "n1-reading") {
     return "Type the hiragana reading.";
   }
 
-  if (mode === "n1-meaning") {
-    return "Type one English meaning.";
+  if (mode === "word-meaning" || mode === "n1-meaning") {
+    return "Type one meaning.";
   }
 
   return `Type one ${mode} reading.`;
 }
 
 function getInitialMode(mode: string | null): Mode {
+  if (mode === "n1-reading") {
+    return "word-reading";
+  }
+
+  if (mode === "n1-meaning") {
+    return "word-meaning";
+  }
+
   return modes.some((item) => item.value === mode) ? (mode as Mode) : "meaning";
 }
 
-function WordQuizCard({ word }: { word: N1Word }) {
+function WordQuizCard({
+  word,
+  cardClassName,
+}: {
+  word: LevelWord;
+  cardClassName: string;
+}) {
   return (
-    <div className="flex h-56 items-center justify-center rounded-lg bg-rose-50 p-4 text-center text-5xl font-black leading-tight text-rose-700">
+    <div className={`flex h-56 items-center justify-center rounded-lg p-4 text-center text-5xl font-black leading-tight ${cardClassName}`}>
       {word.word}
     </div>
   );
 }
 
-function KanjiQuizCard({ kanji }: { kanji: Kanji }) {
+function KanjiQuizCard({
+  kanji,
+  cardClassName,
+}: {
+  kanji: Kanji;
+  cardClassName: string;
+}) {
   return (
-    <div className="flex h-56 items-center justify-center rounded-lg bg-rose-50 font-serif text-9xl text-rose-700">
+    <div className={`flex h-56 items-center justify-center rounded-lg font-serif text-9xl ${cardClassName}`}>
       {kanji.kanji}
     </div>
   );
@@ -148,14 +176,28 @@ function QuizContent() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
   const kanjiItems = useMemo(() => getKanjiByLevel(level), [level]);
-  const isN1WordMode = mode === "n1-reading" || mode === "n1-meaning";
+  const wordLevel: WordLevel =
+    level !== "ALL" && wordLevels.includes(level as WordLevel)
+      ? (level as WordLevel)
+      : "N5";
+  const wordItems = wordsByLevel[wordLevel];
+  const activeLevel =
+    level !== "ALL" && jlptLevels.includes(level as JLPTLevel)
+      ? (level as JLPTLevel)
+      : wordLevel;
+  const theme = levelThemes[activeLevel];
+  const isWordMode =
+    mode === "word-reading" ||
+    mode === "word-meaning" ||
+    mode === "n1-reading" ||
+    mode === "n1-meaning";
   const currentKanji = kanjiItems[index % kanjiItems.length];
-  const currentWord = n1Words[index % n1Words.length];
-  const totalCards = isN1WordMode ? n1Words.length : kanjiItems.length;
+  const currentWord = wordItems[index % wordItems.length];
+  const totalCards = isWordMode ? wordItems.length : kanjiItems.length;
   const correct =
-    mode === "n1-reading"
+    mode === "word-reading" || mode === "n1-reading"
       ? normalize(answer) === normalize(currentWord.reading)
-      : mode === "n1-meaning"
+      : mode === "word-meaning" || mode === "n1-meaning"
         ? meaningMatches(answer, currentWord)
         : isKanjiCorrect(answer, currentKanji, mode);
 
@@ -187,7 +229,7 @@ function QuizContent() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-50">
+    <main className={`min-h-screen ${theme.page}`}>
       <div className="mx-auto max-w-5xl px-6 py-8">
         <nav className="flex flex-wrap items-center justify-between gap-3">
           <Link href="/learn" className="font-bold text-stone-950">
@@ -199,10 +241,10 @@ function QuizContent() {
         </nav>
 
         <header className="mt-8">
-          <p className="text-sm font-bold uppercase tracking-wide text-rose-700">
+          <p className={`text-sm font-bold uppercase tracking-wide ${theme.accentText}`}>
             Quiz
           </p>
-          <h1 className="mt-2 text-4xl font-black text-stone-950 md:text-5xl">
+          <h1 className={`mt-2 text-4xl font-black md:text-5xl ${theme.text}`}>
             Test Your Kanji
           </h1>
         </header>
@@ -215,8 +257,8 @@ function QuizContent() {
                 type="button"
                 onClick={() => reset(item, mode)}
                 className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
-                  level === item && !isN1WordMode
-                    ? "bg-rose-600 text-white"
+                  level === item
+                    ? levelThemes[item === "ALL" ? activeLevel : (item as JLPTLevel)].primaryButton
                     : "border border-stone-300 bg-white text-stone-800 hover:bg-stone-100"
                 }`}
               >
@@ -243,29 +285,29 @@ function QuizContent() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+        <section className={`mt-8 rounded-lg border p-6 ${theme.panel}`}>
           <div className="grid gap-6 md:grid-cols-[220px_1fr]">
-            {isN1WordMode ? (
-              <WordQuizCard word={currentWord} />
+            {isWordMode ? (
+              <WordQuizCard word={currentWord} cardClassName={theme.soft} />
             ) : (
-              <KanjiQuizCard kanji={currentKanji} />
+              <KanjiQuizCard kanji={currentKanji} cardClassName={theme.soft} />
             )}
 
             <div className="flex flex-col justify-center">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-stone-100 px-2.5 py-1 text-sm font-bold text-stone-700">
-                  {isN1WordMode ? "N1 Words" : currentKanji.level}
+                <span className={`rounded-md px-2.5 py-1 text-sm font-bold ${theme.badge}`}>
+                  {isWordMode ? `${wordLevel} Words` : currentKanji.level}
                 </span>
                 <span className="text-sm text-stone-500">
                   Card {index + 1} of {totalCards}
                 </span>
               </div>
 
-              <h2 className="mt-4 text-2xl font-black text-stone-950">
+              <h2 className={`mt-4 text-2xl font-black ${theme.text}`}>
                 {questionText(mode)}
               </h2>
               <p className="mt-2 text-stone-600">
-                {isN1WordMode
+                {isWordMode
                   ? `Reading: ${currentWord.reading}`
                   : currentKanji.hint}
               </p>
@@ -281,9 +323,9 @@ function QuizContent() {
                     check();
                   }
                 }}
-                className="mt-5 w-full rounded-lg border border-stone-300 px-4 py-3 text-lg text-stone-950 outline-none transition focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+                className={`mt-5 w-full rounded-lg border border-stone-300 px-4 py-3 text-lg text-stone-950 outline-none transition ${theme.focus}`}
                 placeholder={
-                  mode === "n1-reading"
+                  mode === "word-reading" || mode === "n1-reading"
                     ? "Type the hiragana reading"
                     : "Type your answer"
                 }
@@ -300,9 +342,9 @@ function QuizContent() {
                   {correct
                     ? "Correct."
                     : `Answer: ${
-                        mode === "n1-reading"
+                        mode === "word-reading" || mode === "n1-reading"
                           ? currentWord.reading
-                          : mode === "n1-meaning"
+                          : mode === "word-meaning" || mode === "n1-meaning"
                             ? currentWord.meaning
                             : expectedKanjiAnswer(currentKanji, mode)
                       }`}
@@ -313,21 +355,21 @@ function QuizContent() {
                 <button
                   type="button"
                   onClick={check}
-                  className="rounded-lg bg-rose-600 px-5 py-3 font-bold text-white transition hover:bg-rose-700"
+                  className={`rounded-lg px-5 py-3 font-bold transition ${theme.primaryButton}`}
                 >
                   Check
                 </button>
                 <button
                   type="button"
                   onClick={next}
-                  className="rounded-lg border border-stone-300 px-5 py-3 font-bold text-stone-800 transition hover:bg-stone-100"
+                  className={`rounded-lg border px-5 py-3 font-bold transition ${theme.outlineButton}`}
                 >
                   Next
                 </button>
-                {isN1WordMode ? (
+                {isWordMode ? (
                   <Link
-                    href={`/words/${currentWord.id}`}
-                    className="rounded-lg border border-stone-300 px-5 py-3 font-bold text-stone-800 transition hover:bg-stone-100"
+                    href={`/words/${currentWord.slug}`}
+                    className={`rounded-lg border px-5 py-3 font-bold transition ${theme.outlineButton}`}
                   >
                     Detail
                   </Link>
@@ -345,9 +387,9 @@ export default function QuizPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-stone-50">
+        <main className={`min-h-screen ${levelThemes.N5.page}`}>
           <div className="mx-auto max-w-5xl px-6 py-8">
-            <div className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+            <div className={`rounded-lg border p-6 ${levelThemes.N5.panel}`}>
               Loading quiz...
             </div>
           </div>

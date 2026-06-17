@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Kanji } from "../data/kanjiData";
-import type { N1Word } from "../data/n1Words";
+import { levelThemes } from "../data/levelThemes";
+import type { LevelWord } from "../data/levelWords";
 
 type Props = {
   kanjiItems: Kanji[];
-  wordItems: N1Word[];
+  wordItems: LevelWord[];
 };
 
 function normalize(value: string) {
@@ -50,10 +51,10 @@ export default function KanjiOnlySearch({ kanjiItems, wordItems }: Props) {
   }, [value, wordItems]);
 
   return (
-    <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+    <section className="rounded-lg border border-stone-300/70 bg-white/82 p-5 shadow-[0_18px_55px_rgba(68,64,60,0.1)] backdrop-blur">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-rose-700">
+          <p className="text-sm font-black uppercase tracking-wide text-red-800">
             Kanji Search
           </p>
           <h2 className="mt-1 text-2xl font-black text-stone-950">
@@ -61,7 +62,7 @@ export default function KanjiOnlySearch({ kanjiItems, wordItems }: Props) {
           </h2>
         </div>
         <Link
-          href="/quiz?mode=n1-meaning"
+          href="/quiz?mode=word-meaning&level=N5"
           className="rounded-lg bg-stone-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-stone-800"
         >
           Meaning Quiz
@@ -71,8 +72,8 @@ export default function KanjiOnlySearch({ kanjiItems, wordItems }: Props) {
       <input
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="mt-5 w-full rounded-lg border border-stone-300 px-4 py-4 text-lg text-stone-950 outline-none transition focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
-        placeholder="Search word, reading, or English meaning"
+        className="mt-5 w-full rounded-lg border border-stone-300 bg-white/90 px-4 py-4 text-lg text-stone-950 outline-none transition focus:border-red-700 focus:ring-4 focus:ring-red-100"
+        placeholder="Search word, reading, English meaning, or Burmese meaning"
       />
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
@@ -88,7 +89,7 @@ export default function KanjiOnlySearch({ kanjiItems, wordItems }: Props) {
               <Link
                 key={item.id}
                 href={`/kanji/${item.id}`}
-                className="flex items-center gap-3 rounded-lg border border-stone-200 p-3 transition hover:border-rose-300 hover:bg-rose-50"
+                className={`flex items-center gap-3 rounded-lg border p-3 transition ${levelThemes[item.level].panel} ${levelThemes[item.level].hoverBorder}`}
               >
                 <span className="font-serif text-4xl font-black text-stone-950">
                   {item.kanji}
@@ -97,8 +98,11 @@ export default function KanjiOnlySearch({ kanjiItems, wordItems }: Props) {
                   <span className="block font-bold text-stone-950">
                     {item.meaning}
                   </span>
-                  <span className="block text-sm text-stone-500">
-                    {item.level} - {item.onyomi.concat(item.kunyomi).join(", ")}
+                  <span className={`mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-bold ${levelThemes[item.level].badge}`}>
+                    {item.level}
+                  </span>
+                  <span className="mt-1 block text-sm text-stone-500">
+                    {item.onyomi.concat(item.kunyomi).join(", ")}
                   </span>
                 </span>
               </Link>
@@ -116,21 +120,21 @@ export default function KanjiOnlySearch({ kanjiItems, wordItems }: Props) {
           <div className="mt-3 grid gap-2">
             {wordResults.map((item) => (
               <Link
-                key={item.id}
-                href={`/words/${item.id}`}
-                className="rounded-lg border border-stone-200 p-3 transition hover:border-rose-300 hover:bg-rose-50"
+                key={item.slug}
+                href={`/words/${item.slug}`}
+                className={`rounded-lg border p-3 transition ${levelThemes[item.level].panel} ${levelThemes[item.level].hoverBorder}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <span>
                     <span className="block text-xl font-black text-stone-950">
                       {item.word}
                     </span>
-                    <span className="block text-sm font-semibold text-rose-700">
+                    <span className={`block text-sm font-semibold ${levelThemes[item.level].accentText}`}>
                       {item.reading}
                     </span>
                   </span>
-                  <span className="rounded-md bg-stone-100 px-2 py-1 text-xs font-bold text-stone-500">
-                    p.{item.sourcePage}
+                  <span className={`rounded-md px-2 py-1 text-xs font-bold ${levelThemes[item.level].badge}`}>
+                    {item.level}
                   </span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-sm text-stone-600">

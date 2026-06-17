@@ -4,7 +4,7 @@ import {
   jlptLevels,
   levelDescriptions,
 } from "../data/kanjiData";
-import { n1WordCount } from "../data/n1Words";
+import { wordLevelCounts } from "../data/levelWords";
 
 export default function SummaryPage() {
   const total = getKanjiByLevel("ALL").length;
@@ -29,11 +29,11 @@ export default function SummaryPage() {
             Summary
           </p>
           <h1 className="mt-2 text-4xl font-black text-stone-950">
-            {total} kanji and {n1WordCount} N1 words ready
+            {total} kanji and {wordLevelCounts.N1} N1 words ready
           </h1>
           <p className="mt-3 max-w-2xl text-stone-600">
-            The deck is grouped from N5 to N1 and now includes the complete N1
-            word-reading bank from your PDF.
+            The deck is grouped from N5 to N1 and now includes N1, N2, and N3
+            Kanji Master word banks with English and Burmese meanings.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
@@ -43,7 +43,7 @@ export default function SummaryPage() {
               Browse N1 Words
             </Link>
             <Link
-              href="/quiz?mode=n1-reading"
+              href="/quiz?mode=word-reading&level=N1"
               className="rounded-lg bg-stone-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-stone-800"
             >
               Quiz N1 Readings

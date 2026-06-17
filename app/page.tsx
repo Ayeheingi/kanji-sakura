@@ -1,136 +1,184 @@
 import Link from "next/link";
-import KanjiOnlySearch from "./components/KanjiOnlySearch";
-import {
-  kanjiData,
-  getLevelCounts,
-  jlptLevels,
-  levelDescriptions,
-} from "./data/kanjiData";
-import { n1WordCount, n1Words } from "./data/n1Words";
+import { jlptLevels, levelDescriptions } from "./data/kanjiData";
+import { levelThemes } from "./data/levelThemes";
+import { wordLevelCounts } from "./data/levelWords";
 
 export default function Home() {
-  const counts = getLevelCounts();
+  const totalWords = Object.values(wordLevelCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
 
   return (
-    <main className="min-h-screen bg-stone-50">
-      <section className="border-b border-stone-200 bg-white">
-        <div className="mx-auto grid min-h-[72vh] max-w-6xl content-center gap-10 px-6 py-12 lg:grid-cols-[1fr_420px] lg:items-center">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-rose-700">
-              Kanji study library
-            </p>
-            <h1 className="mt-4 max-w-3xl text-5xl font-black leading-tight text-stone-950 md:text-7xl">
-              Kanji Library
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-stone-600">
-              Build your own kanji collection: search kanji, add word sets,
-              review meanings, practice readings, and quiz what you learn.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/learn"
-                className="rounded-lg bg-rose-600 px-6 py-3 font-bold text-white shadow-sm transition hover:bg-rose-700"
-              >
-                Start Learning
-              </Link>
-              <Link
-                href="/words"
-                className="rounded-lg border border-stone-300 bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-100"
-              >
-                Kanji Words
-              </Link>
-              <Link
-                href="/quiz"
-                className="rounded-lg border border-stone-300 bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-100"
-              >
-                Take Quiz
-              </Link>
+    <main className="min-h-screen bg-[linear-gradient(135deg,#fffbeb_0%,#fff7ed_48%,#f8fafc_100%)] text-stone-950">
+      <header className="border-b border-stone-300/70 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+          <Link href="/" className="text-xl font-black">
+            Kanji Library
+          </Link>
+          <nav className="flex flex-wrap gap-2">
+            <Link
+              href="/learn"
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-900 transition hover:bg-stone-100"
+            >
+              Levels
+            </Link>
+            <Link
+              href="/words"
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-900 transition hover:bg-stone-100"
+            >
+              Words
+            </Link>
+            <Link
+              href="/search"
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-900 transition hover:bg-stone-100"
+            >
+              Search
+            </Link>
+            <Link
+              href="/practice?level=N5"
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-900 transition hover:bg-stone-100"
+            >
+              Practice
+            </Link>
+            <Link
+              href="/quiz?mode=word-reading&level=N5"
+              className="rounded-lg bg-stone-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-stone-800"
+            >
+              Quiz
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-6xl px-6 py-12">
+        <div className="max-w-3xl">
+          <p className="text-sm font-black uppercase tracking-wide text-red-800">
+            Japanese and Burmese kanji study
+          </p>
+          <h1 className="mt-4 text-5xl font-black leading-tight md:text-7xl">
+            Choose your JLPT level
+          </h1>
+          <p className="mt-5 text-lg leading-8 text-stone-600">
+            Start with one level, then study kanji flashcards, chapter word
+            banks, readings, English meanings, Burmese meanings, and quizzes.
+          </p>
+        </div>
+
+        <div className="mt-6 grid max-w-xl grid-cols-3 gap-3">
+          <div className="rounded-lg border border-stone-300/70 bg-white/80 p-3 shadow-sm">
+            <div className="text-2xl font-black">{totalWords}</div>
+            <div className="text-xs font-bold uppercase tracking-wide text-stone-500">
+              words
             </div>
           </div>
+          <div className="rounded-lg border border-stone-300/70 bg-white/80 p-3 shadow-sm">
+            <div className="text-2xl font-black">5</div>
+            <div className="text-xs font-bold uppercase tracking-wide text-stone-500">
+              levels
+            </div>
+          </div>
+          <div className="rounded-lg border border-stone-300/70 bg-white/80 p-3 shadow-sm">
+            <div className="text-2xl font-black">日 / မြန်</div>
+            <div className="text-xs font-bold uppercase tracking-wide text-stone-500">
+              meanings
+            </div>
+          </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {["学", "認", "感", "響"].map((kanji, index) => (
-              <div
-                key={kanji}
-                className={`flex aspect-square items-center justify-center rounded-lg border font-serif text-7xl shadow-sm ${
-                  index === 0
-                    ? "border-rose-200 bg-rose-50 text-rose-700"
-                    : "border-stone-200 bg-stone-100 text-stone-950"
-                }`}
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          <Link
+            href="/learn?level=N5"
+            className="rounded-lg border border-stone-300/70 bg-white/86 p-5 shadow-sm transition hover:border-stone-500 hover:shadow-md"
+          >
+            <div className="text-xl font-black">Kanji Flashcards</div>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Flip cards with kanji, onyomi, kunyomi, English, Myanmar, and
+              example words.
+            </p>
+          </Link>
+          <Link
+            href="/words"
+            className="rounded-lg border border-stone-300/70 bg-white/86 p-5 shadow-sm transition hover:border-stone-500 hover:shadow-md"
+          >
+            <div className="text-xl font-black">Kanji Words Bank</div>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Browse every level, chapter, main kanji group, reading, and
+              Burmese meaning.
+            </p>
+          </Link>
+          <Link
+            href="/practice?level=N5"
+            className="rounded-lg border border-stone-300/70 bg-white/86 p-5 shadow-sm transition hover:border-stone-500 hover:shadow-md"
+          >
+            <div className="text-xl font-black">Input Practice</div>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Type meanings, onyomi, and kunyomi from memory before checking
+              the answer.
+            </p>
+          </Link>
+        </div>
+
+        <section className="mt-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-black uppercase tracking-wide text-red-800">
+                Start Here
+              </p>
+              <h2 className="mt-1 text-2xl font-black">Select A Level</h2>
+            </div>
+            <Link
+              href="/learn"
+              className="rounded-lg border border-stone-300 bg-white/86 px-4 py-2 text-sm font-bold text-stone-900 transition hover:bg-stone-100"
+            >
+              Level page
+            </Link>
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-5">
+            {jlptLevels.map((level) => (
+              <article
+                key={level}
+                className={`rounded-lg border p-4 transition hover:shadow-md ${levelThemes[level].panel} ${levelThemes[level].hoverBorder}`}
               >
-                {kanji}
-              </div>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="text-2xl font-black">{level}</div>
+                    <div className={`mt-1 text-sm font-semibold ${levelThemes[level].accentText}`}>
+                      {wordLevelCounts[level]} words
+                    </div>
+                  </div>
+                  <span className={`rounded-md px-2 py-1 text-xs font-bold ${levelThemes[level].badge}`}>
+                    JLPT
+                  </span>
+                </div>
+                <p className="mt-3 min-h-24 text-sm leading-6 text-stone-600">
+                  {levelDescriptions[level]}
+                </p>
+                <div className="mt-4 grid gap-2">
+                  <Link
+                    href={`/learn?level=${level}`}
+                    className={`rounded-lg px-3 py-2 text-center text-sm font-bold transition ${levelThemes[level].primaryButton}`}
+                  >
+                    Flashcards
+                  </Link>
+                  <Link
+                    href={`/words?level=${level}`}
+                    className={`rounded-lg border px-3 py-2 text-center text-sm font-bold transition ${levelThemes[level].outlineButton}`}
+                  >
+                    Words
+                  </Link>
+                  <Link
+                    href={`/quiz?mode=word-reading&level=${level}`}
+                    className={`rounded-lg border px-3 py-2 text-center text-sm font-bold transition ${levelThemes[level].outlineButton}`}
+                  >
+                    Quiz
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <KanjiOnlySearch kanjiItems={kanjiData} wordItems={n1Words} />
-
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <Link
-            href="/learn"
-            className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition hover:border-rose-300 hover:shadow-md"
-          >
-            <div className="text-xl font-black text-stone-950">Flashcards</div>
-            <p className="mt-2 text-sm leading-6 text-stone-600">
-              Review kanji cards by level with readings, meanings, and examples.
-            </p>
-          </Link>
-          <Link
-            href="/learn?level=N1"
-            className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition hover:border-rose-300 hover:shadow-md"
-          >
-            <div className="text-xl font-black text-stone-950">
-              Input Practice
-            </div>
-            <p className="mt-2 text-sm leading-6 text-stone-600">
-              Type meanings and readings from memory before checking answers.
-            </p>
-          </Link>
-          <Link
-            href="/quiz?mode=n1-reading"
-            className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition hover:border-rose-300 hover:shadow-md"
-          >
-            <div className="text-xl font-black text-stone-950">
-              Reading Quiz
-            </div>
-            <p className="mt-2 text-sm leading-6 text-stone-600">
-              Practice the complete N1 kanji word-reading bank.
-            </p>
-          </Link>
-        </div>
-
-        <div className="mt-10">
-          <h2 className="text-2xl font-black text-stone-950">
-            JLPT Kanji Levels
-          </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-5">
-            {jlptLevels.map((level) => {
-              const count =
-                counts.find((item) => item.level === level)?.count ?? 0;
-
-              return (
-                <Link
-                  key={level}
-                  href={`/learn?level=${level}`}
-                  className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm transition hover:border-rose-300 hover:shadow-md"
-                >
-                  <div className="text-2xl font-black text-stone-950">
-                    {level}
-                  </div>
-                  <div className="mt-1 text-sm font-semibold text-rose-700">
-                    {level === "N1" ? `${n1WordCount} words` : `${count} kanji`}
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-stone-600">
-                    {levelDescriptions[level]}
-                  </p>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        </section>
       </section>
     </main>
   );

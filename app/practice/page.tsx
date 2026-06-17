@@ -1,4 +1,8 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import PracticePanel from "../components/PracticePanel";
 import {
   getKanjiByLevel,
@@ -8,12 +12,6 @@ import {
 } from "../data/kanjiData";
 import { levelThemes } from "../data/levelThemes";
 
-type Props = {
-  searchParams: Promise<{
-    level?: string;
-  }>;
-};
-
 function getSelectedLevel(level?: string): JLPTLevel {
   if (level && jlptLevels.includes(level as JLPTLevel)) {
     return level as JLPTLevel;
@@ -22,9 +20,9 @@ function getSelectedLevel(level?: string): JLPTLevel {
   return "N5";
 }
 
-export default async function PracticePage({ searchParams }: Props) {
-  const params = await searchParams;
-  const selectedLevel = getSelectedLevel(params.level);
+function PracticeContent() {
+  const searchParams = useSearchParams();
+  const selectedLevel = getSelectedLevel(searchParams.get("level") ?? undefined);
   const theme = levelThemes[selectedLevel];
   const items = getKanjiByLevel(selectedLevel);
 
@@ -126,5 +124,13 @@ export default async function PracticePage({ searchParams }: Props) {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function PracticePage() {
+  return (
+    <Suspense>
+      <PracticeContent />
+    </Suspense>
   );
 }

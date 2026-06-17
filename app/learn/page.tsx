@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { jlptLevels, levelDescriptions, type JLPTLevel } from "../data/kanjiData";
 import { levelThemes } from "../data/levelThemes";
 import {
@@ -7,13 +11,6 @@ import {
   wordsByLevel,
   type WordLevel,
 } from "../data/levelWords";
-
-type Props = {
-  searchParams: Promise<{
-    chapter?: string;
-    level?: string;
-  }>;
-};
 
 function getSelectedLevel(level?: string): JLPTLevel | "ALL" {
   if (level && jlptLevels.includes(level as JLPTLevel)) {
@@ -100,10 +97,12 @@ function getChapterGroups(words: LevelWord[]) {
   return Array.from(chapterGroups.values());
 }
 
-export default async function LearnPage({ searchParams }: Props) {
-  const params = await searchParams;
-  const selectedLevel = getSelectedLevel(params.level);
-  const selectedChapter = getSelectedChapter(params.chapter);
+function LearnContent() {
+  const searchParams = useSearchParams();
+  const selectedLevel = getSelectedLevel(searchParams.get("level") ?? undefined);
+  const selectedChapter = getSelectedChapter(
+    searchParams.get("chapter") ?? undefined,
+  );
   const theme =
     selectedLevel === "ALL" ? levelThemes.N5 : levelThemes[selectedLevel];
   const wordItems = isWordLevel(selectedLevel)
@@ -377,5 +376,13 @@ export default async function LearnPage({ searchParams }: Props) {
         ) : null}
       </div>
     </main>
+  );
+}
+
+export default function LearnPage() {
+  return (
+    <Suspense>
+      <LearnContent />
+    </Suspense>
   );
 }
